@@ -1,5 +1,4 @@
 import streamlit as st
-from forex_python.converter import CurrencyRates
 
 # Unit conversion functions
 def length_conversion(value, from_unit, to_unit):
@@ -44,14 +43,6 @@ def temperature_conversion(value, from_unit, to_unit):
         return (value - 273.15) * 9/5 + 32
 
 
-def currency_conversion(value, from_currency, to_currency):
-    try:
-        c = CurrencyRates()
-        return c.convert(from_currency, to_currency, value)
-    except:
-        return "Currency conversion not available. Make sure your currency codes are correct!"
-
-
 # Streamlit UI with sidebar and colors
 st.set_page_config(page_title="Advanced Unit Converter", page_icon="🌍", layout="wide")
 
@@ -59,7 +50,7 @@ st.sidebar.header("Navigation 🧭")
 st.sidebar.write("Choose your options below:")
 
 category = st.sidebar.selectbox("Select a category", [
-    "📏 Length", "⚖️ Weight", "🌡️ Temperature", "💱 Currency"
+    "📏 Length", "⚖️ Weight", "🌡️ Temperature"
 ])
 value = st.sidebar.number_input("Enter the value to convert", min_value=0.0)
 
@@ -107,11 +98,6 @@ elif category == "🌡️ Temperature":
     from_unit = st.selectbox("From", ["Celsius", "Fahrenheit", "Kelvin"])
     to_unit = st.selectbox("To", ["Celsius", "Fahrenheit", "Kelvin"])
     result = temperature_conversion(value, from_unit, to_unit)
-
-elif category == "💱 Currency":
-    from_unit = st.text_input("From (Currency Code, e.g., USD)")
-    to_unit = st.text_input("To (Currency Code, e.g., EUR)")
-    result = currency_conversion(value, from_unit.upper(), to_unit.upper())
 
 if st.button("Convert 🚀"):
     st.markdown(f"<div class='result-card'><h3>Result: {result} {to_unit}</h3></div>", unsafe_allow_html=True)

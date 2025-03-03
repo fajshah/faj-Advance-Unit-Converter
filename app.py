@@ -1,19 +1,33 @@
 import streamlit as st
-import os
+from forex_python.converter import CurrencyRates
 
-
-# Conversion functions
-def length_converter(value, from_unit, to_unit):
-    length_units = {"Meter": 1, "Kilometer": 1000, "Centimeter": 0.01, "Millimeter": 0.001, "Mile": 1609.34, "Yard": 0.9144, "Foot": 0.3048, "Inch": 0.0254}
+# Unit conversion functions
+def length_conversion(value, from_unit, to_unit):
+    length_units = {
+        "meters": 1,
+        "kilometers": 0.001,
+        "centimeters": 100,
+        "millimeters": 1000,
+        "miles": 0.000621371,
+        "yards": 1.09361,
+        "feet": 3.28084,
+        "inches": 39.3701,
+    }
     return value * length_units[to_unit] / length_units[from_unit]
 
 
-def weight_converter(value, from_unit, to_unit):
-    weight_units = {"Kilogram": 1, "Gram": 0.001, "Pound": 0.453592, "Ounce": 0.0283495}
+def weight_conversion(value, from_unit, to_unit):
+    weight_units = {
+        "kilograms": 1,
+        "grams": 1000,
+        "milligrams": 1e6,
+        "pounds": 2.20462,
+        "ounces": 35.274,
+    }
     return value * weight_units[to_unit] / weight_units[from_unit]
 
 
-def temperature_converter(value, from_unit, to_unit):
+def temperature_conversion(value, from_unit, to_unit):
     if from_unit == to_unit:
         return value
     if from_unit == "Celsius" and to_unit == "Fahrenheit":
@@ -26,59 +40,80 @@ def temperature_converter(value, from_unit, to_unit):
         return value - 273.15
     if from_unit == "Fahrenheit" and to_unit == "Kelvin":
         return (value - 32) * 5/9 + 273.15
-    if from_unit == "Kelvin" and to_unit == "Fahrenheit":
+    if to_unit == "Fahrenheit" and from_unit == "Kelvin":
         return (value - 273.15) * 9/5 + 32
 
 
-def time_converter(value, from_unit, to_unit):
-    time_units = {"Second": 1, "Minute": 60, "Hour": 3600, "Day": 86400}
-    return value * time_units[to_unit] / time_units[from_unit]
+def currency_conversion(value, from_currency, to_currency):
+    try:
+        c = CurrencyRates()
+        return c.convert(from_currency, to_currency, value)
+    except:
+        return "Currency conversion not available. Make sure your currency codes are correct!"
 
 
-# Streamlit UI
-st.title("🌍 **Advance Unit Converter**")
+# Streamlit UI with sidebar and colors
+st.set_page_config(page_title="Advanced Unit Converter", page_icon="🌍", layout="wide")
 
-# Handle icon image
-icon_path = "icon.png"
-if os.path.exists(icon_path):
-    st.image(icon_path, width=50)
+st.sidebar.header("Navigation 🧭")
+st.sidebar.write("Choose your options below:")
 
-st.markdown("Convert between various units seamlessly! 🌟")
+category = st.sidebar.selectbox("Select a category", [
+    "📏 Length", "⚖️ Weight", "🌡️ Temperature", "💱 Currency"
+])
+value = st.sidebar.number_input("Enter the value to convert", min_value=0.0)
 
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/4781/4781517.png", width=100)
-st.sidebar.title("🔧 Conversion Options")
-
-conversion_type = st.sidebar.selectbox("Choose Conversion Type:", ["Length", "Weight", "Temperature", "Time"])
-
-units = {
-    "Length": ["Meter", "Kilometer", "Centimeter", "Millimeter", "Mile", "Yard", "Foot", "Inch"],
-    "Weight": ["Kilogram", "Gram", "Pound", "Ounce"],
-    "Temperature": ["Celsius", "Fahrenheit", "Kelvin"],
-    "Time": ["Second", "Minute", "Hour", "Day"]
-}
-
-from_unit = st.selectbox("From Unit:", units[conversion_type])
-to_unit = st.selectbox("To Unit:", units[conversion_type])
-value = st.number_input("Enter Value:", min_value=0.0, format="%.2f")
-
-if st.button("🚀 Convert"):
-    if conversion_type == "Length":
-        result = length_converter(value, from_unit, to_unit)
-    elif conversion_type == "Weight":
-        result = weight_converter(value, from_unit, to_unit)
-    elif conversion_type == "Temperature":
-        result = temperature_converter(value, from_unit, to_unit)
-    elif conversion_type == "Time":
-        result = time_converter(value, from_unit, to_unit)
-
-    st.success(f"{value} {from_unit} = {result:.2f} {to_unit}")
-
-st.info("Supports length, weight, temperature, and time conversions. Real-time results! 💡")
-
-# Footer
 st.markdown("""
----
-👩‍💻 **Made by Syeda Farzana Shah**
+<style>
+    .main-title {
+        text-align: center;
+        font-size: 2.5em;
+        color: #FF6F61;
+    }
+    .result-card {
+        background-color: #E3FCEF;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .footer {
+        text-align: center;
+        margin-top: 50px;
+        font-size: 1em;
+        color: red;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-🔗 [GitHub](#) | 📧 [Email](#) | 🌍 [Website](#)
-""")
+st.markdown("<div class='main-title'>🌍 Advanced Unit Converter</div>", unsafe_allow_html=True)
+
+st.write("Convert between different units with ease. Just select a category, enter a value, and get your result instantly! 💡")
+
+if category == "📏 Length":
+    length_units = [
+        "meters", "kilometers", "centimeters", "millimeters", "miles", "yards", "feet", "inches"
+    ]
+    from_unit = st.selectbox("From", length_units)
+    to_unit = st.selectbox("To", length_units)
+    result = length_conversion(value, from_unit, to_unit)
+
+elif category == "⚖️ Weight":
+    weight_units = ["kilograms", "grams", "milligrams", "pounds", "ounces"]
+    from_unit = st.selectbox("From", weight_units)
+    to_unit = st.selectbox("To", weight_units)
+    result = weight_conversion(value, from_unit, to_unit)
+
+elif category == "🌡️ Temperature":
+    from_unit = st.selectbox("From", ["Celsius", "Fahrenheit", "Kelvin"])
+    to_unit = st.selectbox("To", ["Celsius", "Fahrenheit", "Kelvin"])
+    result = temperature_conversion(value, from_unit, to_unit)
+
+elif category == "💱 Currency":
+    from_unit = st.text_input("From (Currency Code, e.g., USD)")
+    to_unit = st.text_input("To (Currency Code, e.g., EUR)")
+    result = currency_conversion(value, from_unit.upper(), to_unit.upper())
+
+if st.button("Convert 🚀"):
+    st.markdown(f"<div class='result-card'><h3>Result: {result} {to_unit}</h3></div>", unsafe_allow_html=True)
+
+st.markdown("<div class='footer'>Made with ❤️ by Syeda Farzana Shah</div>", unsafe_allow_html=True)
